@@ -1,10 +1,7 @@
 {
-  "port": 3000,
-  "baseUrl": "http://localhost:3000",
-  "resources": {
-    "item": "books",
-    "person": "members",
-    "link": "loans",
-    "extra": "categories"
-  }
+  "port": 3999,
+  "items": "books",
+  "persons": "members",
+  "links": "loans",
+  "extra": "categories"
 }

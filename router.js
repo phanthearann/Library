@@ -1,10 +1,10 @@
+// router.js
 const { sendJSON } = require('./lib/send');
 
-// ហៅ handlers ពី resources មកប្រើ
 const booksHandler = require('./resources/books');
 const membersHandler = require('./resources/members');
 const loansHandler = require('./resources/loans');
-const categoriesHandler = require('./resources/categories');
+const categoriesHandler = require('./resources/categories'); // ប្រធានបទ Library
 
 async function handleRoutes(req, res) {
   const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
@@ -12,37 +12,30 @@ async function handleRoutes(req, res) {
   const method = req.method;
 
   try {
-    if (pathname.startsWith('/api/books')) {
-      if (typeof booksHandler === 'function') {
-        await booksHandler(req, res, pathname, method);
-      } else {
-        sendJSON(res, 501, { message: 'Books handler not implemented yet' });
-      }
-    } else if (pathname.startsWith('/api/members')) {
-      if (typeof membersHandler === 'function') {
-        await membersHandler(req, res, pathname, method);
-      } else {
-        sendJSON(res, 501, { message: 'Members handler not implemented yet' });
-      }
-    } else if (pathname.startsWith('/api/loans')) {
-      if (typeof loansHandler === 'function') {
-        await loansHandler(req, res, pathname, method);
-      } else {
-        sendJSON(res, 501, { message: 'Loans handler not implemented yet' });
-      }
-    } else if (pathname.startsWith('/api/categories')) {
-      if (typeof categoriesHandler === 'function') {
-        await categoriesHandler(req, res, pathname, method);
-      } else {
-        sendJSON(res, 501, { message: 'Categories handler not implemented yet' });
-      }
+    // 1. GET / ឆ្លើយ 200 ជាមួយសារខ្លី (Spec ៥)
+    if (pathname === '/' && method === 'GET') {
+      return sendJSON(res, 200, {
+        message: 'Library REST API',
+        resources: ['/books', '/members', '/loans', '/categories']
+      });
+    }
+
+    // 2. បែងចែកទៅតាមប្រធានបទ Library (Spec ៣)
+    if (pathname.startsWith('/books')) {
+      await booksHandler(req, res, pathname, method);
+    } else if (pathname.startsWith('/members')) {
+      await membersHandler(req, res, pathname, method);
+    } else if (pathname.startsWith('/loans')) {
+      await loansHandler(req, res, pathname, method);
+    } else if (pathname.startsWith('/categories')) {
+      await categoriesHandler(req, res, pathname, method);
     } else {
-      // 404 Not Found តាមតម្រូវការ Core owner
+      // 3. Path មិនមាន -> 404 (Spec ៥)
       sendJSON(res, 404, { error: 'Route not found' });
     }
   } catch (error) {
-    // 500 Internal Server Error តាមតម្រូវការ Core owner
-    console.error('Server Error:', error);
+    // 4. Server error -> 500 (Spec ៥)
+    console.error(error);
     sendJSON(res, 500, { error: 'Internal Server Error' });
   }
 }
