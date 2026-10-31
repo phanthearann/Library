@@ -26,6 +26,10 @@ async function writeData(data) {
   await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
+async function getAll() {
+  return await readData();
+}
+
 module.exports = {
   getAll,
   findById,
