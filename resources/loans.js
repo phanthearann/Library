@@ -21,6 +21,11 @@ async function readData() {
   }
 }
 
+// Write loans.json
+async function writeData(data) {
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+}
+
 module.exports = {
   getAll,
   findById,
