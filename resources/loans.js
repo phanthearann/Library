@@ -30,10 +30,24 @@ async function getAll() {
   return await readData();
 }
 
+// GET loan by ID
+async function findById(id) {
+  const loans = await readData();
+
+  return loans.find((loan) => loan.id === Number(id)) || null;
+}
+
+// POST create loan
+async function create(loanData, bus) {
+  const loans = await readData();
+
+  const { itemId, personId } = loanData;
+}
+
 module.exports = {
   getAll,
   findById,
   create,
-  endLoan,
-  remove,
-};
+//   endLoan,
+//   remove,
+}
