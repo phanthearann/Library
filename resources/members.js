@@ -1,15 +1,11 @@
 const fs = require("fs").promises;
 const path = require("path");
 
-const filePath = path.join(__dirname, "Data", "members.json");
+const filePath = path.join(__dirname, "..", "Data", "members.json");
 
 async function readData() {
   try {
     const data = await fs.readFile(filePath, "utf8");
-    // ប្រសិនបើ file ទទេស្អាត (data.trim() === "") ឱ្យវា return [] ភ្លាម
-    if (!data.trim()) {
-      return [];
-    }
     return JSON.parse(data);
   } catch (error) {
     if (error.code === "ENOENT") {
@@ -24,17 +20,22 @@ async function writeData(data) {
   await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 }
 
+// GET all members
 async function getAll() {
   return await readData();
 }
 
+// GET member by ID
 async function findById(id) {
   const members = await readData();
+
   return members.find((member) => member.id === Number(id)) || null;
 }
 
+// POST create member
 async function create(memberData, bus) {
   const members = await readData();
+
   const name = memberData.name;
 
   if (typeof name !== "string" || name.trim() === "") {
@@ -52,17 +53,23 @@ async function create(memberData, bus) {
   };
 
   members.push(newMember);
+
   await writeData(members);
 
   if (bus) {
-    bus.emit("created", { resource: "members", id: newMember.id });
+    bus.emit("created", {
+      resource: "members",
+      id: newMember.id,
+    });
   }
 
   return newMember;
 }
 
+// PUT update member
 async function update(id, memberData, bus) {
   const members = await readData();
+
   const index = members.findIndex((member) => member.id === Number(id));
 
   if (index === -1) {
@@ -86,14 +93,19 @@ async function update(id, memberData, bus) {
   await writeData(members);
 
   if (bus) {
-    bus.emit("updated", { resource: "members", id: Number(id) });
+    bus.emit("updated", {
+      resource: "members",
+      id: Number(id),
+    });
   }
 
   return members[index];
 }
 
+// DELETE member
 async function remove(id, bus) {
   const members = await readData();
+
   const index = members.findIndex((member) => member.id === Number(id));
 
   if (index === -1) {
@@ -103,13 +115,19 @@ async function remove(id, bus) {
   }
 
   members.splice(index, 1);
+
   await writeData(members);
 
   if (bus) {
-    bus.emit("deleted", { resource: "members", id: Number(id) });
+    bus.emit("deleted", {
+      resource: "members",
+      id: Number(id),
+    });
   }
 
-  return { deleted: Number(id) };
+  return {
+    deleted: Number(id),
+  };
 }
 
 module.exports = {
