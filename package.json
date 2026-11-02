@@ -13,17 +13,10 @@
     "check": "node check.js"
   },
   "keywords": [],
+  "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
     "nodemon": "^3.1.14"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/phanthearann/Library.git"
-  },
-  "bugs": {
-    "url": "https://github.com/phanthearann/Library/issues"
-  },
-  "homepage": "https://github.com/phanthearann/Library#readme"
+  }
 }
