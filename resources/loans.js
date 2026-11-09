@@ -108,10 +108,76 @@ async function create(loanData, bus) {
   return newLoan;
 }
 
+// PUT / End loan
+async function endLoan(id, bus) {
+  const loans = await readData();
+
+  const index = loans.findIndex((loan) => loan.id === Number(id));
+
+  // Loan not found
+  if (index === -1) {
+    const error = new Error("Loan not found");
+    error.status = 404;
+    throw error;
+  }
+
+  // Already ended
+  if (loans[index].endedAt !== null) {
+    const error = new Error("Loan has already ended");
+
+    error.status = 409;
+    throw error;
+  }
+
+  // End current loan
+  loans[index].endedAt = new Date().toISOString();
+
+  await writeData(loans);
+
+  // Emit updated event
+  if (bus) {
+    bus.emit("updated", {
+      resource: "loans",
+      id: Number(id),
+    });
+  }
+
+  return loans[index];
+}
+
+// DELETE loan
+async function remove(id, bus) {
+  const loans = await readData();
+
+  const index = loans.findIndex((loan) => loan.id === Number(id));
+
+  if (index === -1) {
+    const error = new Error("Loan not found");
+    error.status = 404;
+    throw error;
+  }
+
+  loans.splice(index, 1);
+
+  await writeData(loans);
+
+  // Emit deleted event
+  if (bus) {
+    bus.emit("deleted", {
+      resource: "loans",
+      id: Number(id),
+    });
+  }
+
+  return {
+    deleted: Number(id),
+  };
+}
+
 module.exports = {
   getAll,
   findById,
   create,
-//   endLoan,
-//   remove,
+  endLoan,
+  remove,
 }
