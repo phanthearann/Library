@@ -28,3 +28,34 @@ async function readData(){
         return books.find((book)=>book.id===Number(id))||null;
     }
 }
+async function create(bookData, bus) {
+  const books = await readData();
+
+  const name = bookData.name;
+
+  if (typeof name !== "string" || name.trim() === "") {
+    const error = new Error("name is required");
+    error.status = 400;
+    throw error;
+  }
+  const maxId = books.reduce((max, book) => Math.max(max, book.id), 0);
+
+  const newBook = {
+    id: maxId + 1,
+    name: name.trim(),
+    note: bookData.note ?? "",
+  };
+
+  books.push(newBook);
+
+  await writeData(books);
+
+  if (bus) {
+    bus.emit("created", {
+      resource: "books",
+      id: newBook.id,
+    });
+  }
+
+  return newBook;
+}
