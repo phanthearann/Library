@@ -59,3 +59,36 @@ async function create(bookData, bus) {
 
   return newBook;
 }
+async function remove(id, bus) {
+  const books = await readData();
+
+  const index = books.findIndex((book) => book.id === Number(id));
+
+  if (index === -1) {
+    const error = new Error("Book not found");
+    error.status = 404;
+    throw error;
+  }
+
+  books.splice(index, 1);
+
+  await writeData(books);
+
+  if (bus) {
+    bus.emit("deleted", {
+      resource: "books",
+      id: Number(id),
+    });
+  }
+
+  return {
+    deleted: Number(id),
+  };
+}
+
+module.exports = {
+  getAll,
+  findById,
+  create,
+  remove,
+};
