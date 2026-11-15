@@ -1,6 +1,7 @@
 const fs=require("fs").promises;
 const path=require("path");
 const filePath=path.join(__dirname,"..","Data","books.json");
+const { sendJSON } = require("../lib/send");
 
 async function readData() {
   try {
@@ -119,10 +120,71 @@ async function update(id, bookData, bus) {
 
   return books[index];
 }
-module.exports = {
-  getAll,
-  findById,
-  create,
-  remove,
-  update
-};
+// Read request body
+async function readBody(req) {
+    let body = "";
+
+    for await (const chunk of req) {
+        body += chunk;
+    }
+
+    return body ? JSON.parse(body) : {};
+}
+
+// ROUTE HANDLER
+async function handleBooks(req, res, pathname, method) {
+    const segments = pathname.split("/").filter(Boolean);
+
+    // GET /books
+    if (segments.length === 1 && method === "GET") {
+        return sendJSON(res, 200, await getAll());
+    }
+
+    // GET /books/:id
+    if (segments.length === 2 && method === "GET") {
+        const book = await findById(segments[1]);
+
+        if (!book) {
+            return sendJSON(res, 404, {
+                error: "Book not found"
+            });
+        }
+
+        return sendJSON(res, 200, book);
+    }
+
+    // POST /books
+    if (segments.length === 1 && method === "POST") {
+        const body = await readBody(req);
+        const newBook = await create(body);
+
+        return sendJSON(res, 201, newBook);
+    }
+
+    // PUT /books/:id
+    if (segments.length === 2 && method === "PUT") {
+        const body = await readBody(req);
+        const updatedBook = await update(segments[1], body);
+
+        return sendJSON(res, 200, updatedBook);
+    }
+
+    // DELETE /books/:id
+    if (segments.length === 2 && method === "DELETE") {
+        const result = await remove(segments[1]);
+
+        return sendJSON(res, 200, result);
+    }
+
+    return sendJSON(res, 405, {
+        error: "Method Not Allowed"
+    });
+}
+
+module.exports = handleBooks;
+
+module.exports.getAll = getAll;
+module.exports.findById = findById;
+module.exports.create = create;
+module.exports.remove = remove;
+module.exports.update = update;
