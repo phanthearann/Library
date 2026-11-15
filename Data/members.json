@@ -1,50 +1,44 @@
-<<<<<<< HEAD
 [
   {
     "id": 1,
-    "name": "La kimmeng",
-    "phone": "0963388036"
+    "name": "sa",
+    "phone": "0123635",
+    "date": "2026-11-15"
   },
   {
     "id": 2,
-    "name": "Thea rann",
-    "phone": "1246789"
+    "name": "meng",
+    "phone": "01235",
+    "date": "2026-11-15"
   },
   {
     "id": 3,
-    "name": "Sana",
-    "phone": "098765432"
+    "name": "rann",
+    "phone": "012456435",
+    "date": "2026-11-15"
   },
   {
     "id": 4,
-    "name": "Phan rong",
-    "phone": "34567882"
-  },
-  {
-    "id": 5,
-    "name": "Meng",
-    "phone": "4567890"
+    "name": "rong",
+    "phone": "456435",
+    "date": "2026-11-15"
   },
   {
     "id": 6,
-    "name": "rann",
-    "phone": "2456789"
+    "name": "onggg",
+    "phone": "456435",
+    "date": "2026-11-15"
   },
   {
     "id": 7,
-    "name": "John",
-    "phone": "0123456789"
+    "name": "onggg",
+    "phone": "456435",
+    "date": "2026-11-15"
   },
   {
-    "id": 8,
-    "name": "meng",
-    "phone": "012345673435"
-  },
-  {
-    "id": 9,
-    "name": "rann",
-    "phone": "012345635"
+    "id": 5,
+    "name": "ogg",
+    "phone": "456435",
+    "date": "2026-11-15"
   }
 ]
-=======
->>>>>>> a76e3f9b8980f7ed54703d0a13a8b5ab8446bf9f
