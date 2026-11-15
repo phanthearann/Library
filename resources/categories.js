@@ -109,6 +109,31 @@ async function update(id, categoryData, bus) {
   return categories[index];
 }
 
+async function remove(id, bus) {
+  const categories = await readData();
+  const index = categories.findIndex((category) => category.id === Number(id));
+
+  if (index === -1) {
+    const error = new Error("Category not found");
+    error.status = 404;
+    throw error;
+  }
+
+  categories.splice(index, 1);
+  await writeData(categories);
+
+  if (bus) {
+    bus.emit("deleted", {
+      resource: "categories",
+      id: Number(id),
+    });
+  }
+
+  return {
+    deleted: Number(id),
+  };
+}
+
 async function getRequestBody(req) {
   if (req.body) return req.body;
   let body = "";
@@ -166,6 +191,16 @@ async function handleRequest(req, res, pathname, method, bus) {
       const categoryData = await getRequestBody(req);
       const updatedCategory = await update(id, categoryData, bus);
       return sendJSON(res, 200, updatedCategory);
+    }
+
+    case "DELETE": {
+      if (!id) {
+        const error = new Error("Category ID required for deletion");
+        error.status = 400;
+        throw error;
+      }
+      const result = await remove(id, bus);
+      return sendJSON(res, 200, result);
     }
 
     default: {
