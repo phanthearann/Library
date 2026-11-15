@@ -3,34 +3,26 @@ const fs = require("fs").promises;
 const path = require("path");
 const { sendJSON } = require("../lib/send");
 
-// JSON file location
-const filePath = path.join(__dirname, "..", "Data", "members.json");
+const filePath = path.join(__dirname, "Data", "members.json");
 
 // =====================================
 // READ JSON DATA
 // =====================================
 async function readData() {
-    try {
-        const data = await fs.readFile(filePath, "utf8");
-
-        if (!data.trim()) {
-            return [];
-        }
-
-        return JSON.parse(data);
-
-    } catch (error) {
-        if (error.code === "ENOENT") {
-            await fs.mkdir(path.dirname(filePath), {
-                recursive: true
-            });
-
-            await fs.writeFile(filePath, "[]");
-            return [];
-        }
-
-        throw error;
+  try {
+    const data = await fs.readFile(filePath, "utf8");
+    // ប្រសិនបើ file ទទេស្អាត (data.trim() === "") ឱ្យវា return [] ភ្លាម
+    if (!data.trim()) {
+      return [];
     }
+    return JSON.parse(data);
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      await fs.writeFile(filePath, "[]");
+      return [];
+    }
+    throw error;
+  }
 }
 
 // =====================================
@@ -43,61 +35,18 @@ async function writeData(data) {
     );
 }
 
-// =====================================
-// READ REQUEST BODY
-// =====================================
-async function getBody(req) {
-    return new Promise((resolve, reject) => {
-        let body = "";
-
-        req.on("data", chunk => {
-            body += chunk;
-
-            if (body.length > 1024 * 1024) {
-                reject(new Error("Request body too large"));
-                req.destroy();
-            }
-        });
-
-        req.on("end", () => {
-            try {
-                resolve(body.trim() ? JSON.parse(body) : {});
-            } catch (error) {
-                const err = new Error("Invalid JSON format");
-                err.status = 400;
-                reject(err);
-            }
-        });
-
-        req.on("error", reject);
-    });
-}
-
-// =====================================
-// GET ALL MEMBERS
-// =====================================
 async function getAll() {
     return await readData();
 }
 
-// =====================================
-// GET MEMBER BY ID
-// =====================================
 async function findById(id) {
-    const members = await readData();
-
-    return members.find(
-        member => member.id === Number(id)
-    ) || null;
+  const members = await readData();
+  return members.find((member) => member.id === Number(id)) || null;
 }
 
-// =====================================
-// CREATE MEMBER
-// =====================================
-async function create(memberData) {
-    const members = await readData();
-
-    const name = memberData.name;
+async function create(memberData, bus) {
+  const members = await readData();
+  const name = memberData.name;
 
     if (typeof name !== "string" || !name.trim()) {
         const error = new Error("name is required");
@@ -116,22 +65,19 @@ async function create(memberData) {
         phone: memberData.phone ?? ""
     };
 
-    members.push(newMember);
+  members.push(newMember);
+  await writeData(members);
 
-    await writeData(members);
+  if (bus) {
+    bus.emit("created", { resource: "members", id: newMember.id });
+  }
 
     return newMember;
 }
 
-// =====================================
-// UPDATE MEMBER
-// =====================================
-async function update(id, memberData) {
-    const members = await readData();
-
-    const index = members.findIndex(
-        member => member.id === Number(id)
-    );
+async function update(id, memberData, bus) {
+  const members = await readData();
+  const index = members.findIndex((member) => member.id === Number(id));
 
     if (index === -1) {
         const error = new Error("Member not found");
@@ -154,20 +100,18 @@ async function update(id, memberData) {
         phone: memberData.phone ?? members[index].phone
     };
 
-    await writeData(members);
+  await writeData(members);
+
+  if (bus) {
+    bus.emit("updated", { resource: "members", id: Number(id) });
+  }
 
     return members[index];
 }
 
-// =====================================
-// DELETE MEMBER
-// =====================================
-async function remove(id) {
-    const members = await readData();
-
-    const index = members.findIndex(
-        member => member.id === Number(id)
-    );
+async function remove(id, bus) {
+  const members = await readData();
+  const index = members.findIndex((member) => member.id === Number(id));
 
     if (index === -1) {
         const error = new Error("Member not found");
@@ -175,89 +119,20 @@ async function remove(id) {
         throw error;
     }
 
-    members.splice(index, 1);
+  members.splice(index, 1);
+  await writeData(members);
 
-    await writeData(members);
+  if (bus) {
+    bus.emit("deleted", { resource: "members", id: Number(id) });
+  }
 
-    return {
-        deleted: Number(id)
-    };
+  return { deleted: Number(id) };
 }
 
-// =====================================
-// MEMBERS ROUTE HANDLER
-// =====================================
-async function membersHandler(req, res, pathname, method) {
-
-    try {
-        const parts = pathname.split("/").filter(Boolean);
-        const id = parts[1];
-
-        // GET /members
-        if (method === "GET" && !id) {
-            const members = await getAll();
-
-            return sendJSON(res, 200, members);
-        }
-
-        // GET /members/:id
-        if (method === "GET" && id) {
-            const member = await findById(id);
-
-            if (!member) {
-                return sendJSON(res, 404, {
-                    error: "Member not found"
-                });
-            }
-
-            return sendJSON(res, 200, member);
-        }
-
-        // POST /members
-        if (method === "POST" && !id) {
-            const body = await getBody(req);
-
-            const newMember = await create(body);
-
-            return sendJSON(res, 201, {
-                message: "Member created successfully",
-                data: newMember
-            });
-        }
-
-        // PUT /members/:id
-        if (method === "PUT" && id) {
-            const body = await getBody(req);
-
-            const updatedMember = await update(id, body);
-
-            return sendJSON(res, 200, {
-                message: "Member updated successfully",
-                data: updatedMember
-            });
-        }
-
-        // DELETE /members/:id
-        if (method === "DELETE" && id) {
-            const result = await remove(id);
-
-            return sendJSON(res, 200, {
-                message: "Member deleted successfully",
-                data: result
-            });
-        }
-
-        return sendJSON(res, 405, {
-            error: "Method not allowed"
-        });
-
-    } catch (error) {
-        console.error("Members Error:", error);
-
-        return sendJSON(res, error.status || 500, {
-            error: error.message || "Internal Server Error"
-        });
-    }
-}
-
-module.exports = membersHandler;
+module.exports = {
+  getAll,
+  findById,
+  create,
+  update,
+  remove,
+};

@@ -1,12 +1,32 @@
 
+<<<<<<< HEAD
+=======
+// Finds the right resource for a request and hands it over.
+// Every file in resources/ is loaded automatically.
+
+const fs = require("node:fs");
+const path = require("node:path");
+
+>>>>>>> a76e3f9b8980f7ed54703d0a13a8b5ab8446bf9f
 const { sendJSON } = require("./lib/send");
 
-const booksHandler = require("./resources/books");
-const membersHandler = require("./resources/members");
-const loansHandler = require("./resources/loans");
-const categoriesHandler = require("./resources/categories");
+// Load all resources automatically
+const resources = fs
+  .readdirSync(path.join(__dirname, "resources"))
+  .filter((file) => file.endsWith(".js"))
+  .map((file) => {
+    const handler = require(
+      path.join(__dirname, "resources", file)
+    );
+
+    return {
+      path: "/" + path.basename(file, ".js"),
+      handler,
+    };
+  });
 
 async function handleRoutes(req, res) {
+<<<<<<< HEAD
     try {
         const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
 
@@ -74,5 +94,80 @@ async function handleRoutes(req, res) {
                 : "Internal Server Error"
         });
     }
+=======
+  try {
+    // Parse URL
+    const parsedUrl = new URL(
+      req.url,
+      "http://localhost"
+    );
+
+    const pathname = parsedUrl.pathname;
+    const method = req.method;
+
+    const segments = pathname
+      .split("/")
+      .filter(Boolean);
+
+    // =====================================
+    // GET /
+    // =====================================
+    if (segments.length === 0) {
+      if (method !== "GET") {
+        return sendJSON(res, 405, {
+          error: "Method Not Allowed",
+        });
+      }
+
+      return sendJSON(res, 200, {
+        message: "Library REST API",
+        resources: resources.map((r) => r.path),
+      });
+    }
+
+    // =====================================
+    // FIND RESOURCE
+    // =====================================
+    const resource = resources.find(
+      (r) =>
+        pathname === r.path ||
+        pathname.startsWith(r.path + "/")
+    );
+
+    // =====================================
+    // ROUTE NOT FOUND
+    // =====================================
+    if (!resource) {
+      return sendJSON(res, 404, {
+        error: "Route not found",
+      });
+    }
+
+    // =====================================
+    // CALL RESOURCE HANDLER
+    // =====================================
+    return await resource.handler(
+      req,
+      res,
+      pathname,
+      method
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    // Known errors
+    if (error.status) {
+      return sendJSON(res, error.status, {
+        error: error.message,
+      });
+    }
+
+    // Unexpected errors
+    return sendJSON(res, 500, {
+      error: "Internal Server Error",
+    });
+  }
+>>>>>>> a76e3f9b8980f7ed54703d0a13a8b5ab8446bf9f
 }
 module.exports = handleRoutes;
