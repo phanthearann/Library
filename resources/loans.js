@@ -4,6 +4,8 @@ const path = require("path");
 const books = require("./books");
 const members = require("./members");
 
+const { sendJSON } = require("../lib/send");
+
 const filePath = path.join(__dirname, "..", "Data", "loans.json");
 
 // Read loans.json
@@ -174,10 +176,77 @@ async function remove(id, bus) {
   };
 }
 
-module.exports = {
-  getAll,
-  findById,
-  create,
-  endLoan,
-  remove,
+// Read request body
+async function readBody(req) {
+    let body = "";
+
+    for await (const chunk of req) {
+        body += chunk;
+    }
+
+    return body ? JSON.parse(body) : {};
 }
+
+// Route Handler
+async function handleLoans(req, res, pathname, method) {
+  const segments = pathname.split("/").filter(Boolean);
+
+  // GET /loans
+  if (segments.length === 1 && method === "GET") {
+      return sendJSON(res, 200, await getAll());
+  }
+
+  // GET /loans/:id
+  if (segments.length === 2 && method === "GET") {
+      const loan = await findById(segments[1]);
+
+      if (!loan) {
+          return sendJSON(res, 404, {
+              error: "Loan not found"
+          });
+      }
+
+      return sendJSON(res, 200, loan);
+  }
+
+  // POST /loans
+  if (segments.length === 1 && method === "POST") {
+      const body = await readBody(req);
+
+      const newLoan = await create(body);
+
+      return sendJSON(res, 201, newLoan);
+  }
+
+  // PUT /loans/:id/end
+  if (
+      segments.length === 3 &&
+      segments[2] === "end" &&
+      method === "PUT"
+  ) {
+      const updatedLoan = await endLoan(segments[1]);
+
+      return sendJSON(res, 200, updatedLoan);
+  }
+
+  // DELETE /loans/:id
+  if (segments.length === 2 && method === "DELETE") {
+      const result = await remove(segments[1]);
+
+      return sendJSON(res, 200, result);
+  }
+
+  // Unsupported route or method
+  return sendJSON(res, 405, {
+      error: "Method Not Allowed"
+  });
+}
+
+// Export route handler
+module.exports = handleLoans;
+
+module.exports.getAll = getAll;
+module.exports.findById = findById;
+module.exports.create = create;
+module.exports.endLoan = endLoan;
+module.exports.remove = remove;
