@@ -12,6 +12,11 @@ const filePath = path.join(__dirname, "..", "Data", "loans.json");
 async function readData() {
   try {
     const data = await fs.readFile(filePath, "utf8");
+    if (!data.trim()) {
+      await fs.writeFile(filePath, "[]");
+      return [];
+    }
+
     return JSON.parse(data);
   } catch (error) {
     if (error.code === "ENOENT") {

@@ -12,9 +12,17 @@ const resources = fs
   .readdirSync(path.join(__dirname, "resources"))
   .filter((file) => file.endsWith(".js"))
   .map((file) => {
-    const handler = require(
+    const resourceModule = require(
       path.join(__dirname, "resources", file)
     );
+    const handler =
+      typeof resourceModule === "function"
+        ? resourceModule
+        : resourceModule.handleRequest;
+
+    if (typeof handler !== "function") {
+      throw new TypeError(`Resource ${file} does not export a request handler`);
+    }
 
     return {
       path: "/" + path.basename(file, ".js"),
