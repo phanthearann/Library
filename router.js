@@ -24,56 +24,36 @@ function readBody(req) {
 }
 
 async function runHandler(handler, req, res, pathname, method) {
-  // 1. Handle resources with CRUD methods (getAll, findById, create, update, remove)
-  if (handler && typeof handler.getAll === "function") {
-    const parts = pathname.split("/").filter(Boolean);
-    let id = parts[1];
+  if (typeof handler === "function") {
+    return await handler(req, res, pathname, method);
+  }
 
-    // GET all: GET /members
-    if (parts.length === 1 && method === "GET") {
-      return sendJSON(res, 200, await handler.getAll());
-    }
+  const parts = pathname.split("/").filter(Boolean);
+  const id = parts[1];
 
-    // CREATE: POST /members
-    if (parts.length === 1 && method === "POST") {
+  if (parts.length === 1) {
+    if (method === "GET") return sendJSON(res, 200, await handler.getAll());
+    if (method === "POST") {
       const body = await readBody(req);
       return sendJSON(res, 201, await handler.create(body));
     }
-
-    // Read JSON body for PUT, PATCH, or DELETE
-    const body =
-      method === "PUT" || method === "PATCH" || method === "DELETE"
-        ? await readBody(req)
-        : {};
-
-    // Allow ID from the URL (/members/5) OR from the JSON body ({"id": "5"})
-    id = id ?? body.id;
-
-    if (id !== undefined && id !== "") {
-      // GET one: GET /members/1
-      if (method === "GET") {
-        const item = await handler.findById(id);
-        if (!item) return sendJSON(res, 404, { error: "Not found" });
-        return sendJSON(res, 200, item);
-      }
-
-      // UPDATE: PUT /members/1 OR PUT /members with {"id": 1, ...}
-      if (method === "PUT" || method === "PATCH") {
-        return sendJSON(res, 200, await handler.update(id, body));
-      }
-
-      // DELETE: DELETE /members/1 OR DELETE /members with {"id": 1}
-      if (method === "DELETE") {
-        return sendJSON(res, 200, await handler.remove(id));
-      }
-    }
-
     return sendJSON(res, 405, { error: "Method Not Allowed" });
   }
 
-  // 2. Fallback if the resource exports only a single function
-  if (typeof handler === "function") {
-    return await handler(req, res, pathname, method);
+  if (parts.length === 2 && id) {
+    if (method === "GET") {
+      const item = await handler.findById(id);
+      if (!item) return sendJSON(res, 404, { error: "Not found" });
+      return sendJSON(res, 200, item);
+    }
+    if (method === "PUT" || method === "PATCH") {
+      const body = await readBody(req);
+      return sendJSON(res, 200, await handler.update(id, body));
+    }
+    if (method === "DELETE") {
+      return sendJSON(res, 200, await handler.remove(id));
+    }
+    return sendJSON(res, 405, { error: "Method Not Allowed" });
   }
 
   return sendJSON(res, 404, { error: "Route not found" });
