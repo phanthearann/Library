@@ -16,7 +16,7 @@ function logActivity(action, details) {
   const timestamp = new Date().toISOString();
   const logMessage = `[${timestamp}] ${action.toUpperCase()}: ${JSON.stringify(details)}\n`;
 
-  // បន្ថែមទិន្នន័យต่อท้าย file ស្រាប់ (Append)
+  // បន្ថែមទិន្នន័យ file ស្រាប់ (Append)
   fs.appendFile(logFilePath, logMessage, (err) => {
     if (err) console.error("Failed to write activity log:", err);
   });

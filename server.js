@@ -1,18 +1,12 @@
 // server.js
-require('dotenv').config();
 const http = require('http');
-const config = require('./config');
+const config = require('./config'); // នាំយក config ដែលលោកគ្រូឲ្យមកប្រើ
 const handleRoutes = require('./router');
 require('./activity');
-// ពិនិត្យមើល check.config.json ដើម្បីយករียง Port 3999 ពេលរត់ npm run check
-let checkConfig = {};
-try {
-  checkConfig = require('./check.config.json');
-} catch (e) {
-  // Ignored if check.config.json doesn't exist
-}
 
-const PORT = process.env.PORT || checkConfig.port || config.PORT || 3000;
+// យក PORT មកប្រើប្រាស់ដោយផ្ទាល់ពី config.js យ៉ាងងាយស្រួល
+const PORT = config.PORT; 
+
 const server = http.createServer((req, res) => {
   handleRoutes(req, res);
 });
