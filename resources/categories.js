@@ -1,6 +1,7 @@
 const fs = require("fs").promises;
 const path = require("path");
 const { sendJSON } = require("../lib/send");
+const bus = require("../lib/events");
 
 const filePath = path.join(__dirname, "..", "data", "categories.json");
 

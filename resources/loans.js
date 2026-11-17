@@ -5,6 +5,7 @@ const books = require("./books");
 const members = require("./members");
 
 const { sendJSON } = require("../lib/send");
+const bus = require("../lib/events");
 
 const filePath = path.join(__dirname, "..", "data", "loans.json");
 
@@ -218,7 +219,7 @@ async function handleLoans(req, res, pathname, method) {
   if (segments.length === 1 && method === "POST") {
       const body = await readBody(req);
 
-      const newLoan = await create(body);
+      const newLoan = await create(body,bus);
 
       return sendJSON(res, 201, newLoan);
   }
@@ -229,14 +230,14 @@ async function handleLoans(req, res, pathname, method) {
       segments[2] === "end" &&
       method === "PUT"
   ) {
-      const updatedLoan = await endLoan(segments[1]);
+      const updatedLoan = await endLoan(segments[1],bus);
 
       return sendJSON(res, 200, updatedLoan);
   }
 
   // DELETE /loans/:id
   if (segments.length === 2 && method === "DELETE") {
-      const result = await remove(segments[1]);
+      const result = await remove(segments[1],bus);
 
       return sendJSON(res, 200, result);
   }

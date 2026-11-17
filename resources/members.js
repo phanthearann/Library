@@ -2,6 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const { sendJSON } = require("../lib/send");
 const filePath = path.join(__dirname, "..", "data", "members.json");
+const bus = require("../lib/events");
 
 async function readData() {
   try {
@@ -166,20 +167,20 @@ async function handleMembers(req, res, pathname, method) {
 
   if (segments.length === 1 && method === "POST") {
     const body = await readBody(req);
-    const newMember = await create(body);
+    const newMember = await create(body,bus);
 
     return sendJSON(res, 201, newMember);
   } // PUT /members/:id
 
   if (segments.length === 2 && method === "PUT") {
     const body = await readBody(req);
-    const updatedMember = await update(segments[1], body);
+    const updatedMember = await update(segments[1], body,bus);
 
     return sendJSON(res, 200, updatedMember);
   } // DELETE /members/:id
 
   if (segments.length === 2 && method === "DELETE") {
-    const result = await remove(segments[1]);
+    const result = await remove(segments[1],bus);
     return sendJSON(res, 200, result);
   }
 

@@ -3,7 +3,7 @@ require('dotenv').config();
 const http = require('http');
 const config = require('./config');
 const handleRoutes = require('./router');
-require('./activity'); 
+require('./activity');
 // ពិនិត្យមើល check.config.json ដើម្បីយករียง Port 3999 ពេលរត់ npm run check
 let checkConfig = {};
 try {

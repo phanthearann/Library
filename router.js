@@ -1,4 +1,3 @@
-
 // Finds the right resource for a request and hands it over.
 // Every file in resources/ is loaded automatically.
 
@@ -6,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const { sendJSON } = require("./lib/send");
+const bus = require("./lib/events");
 
 // Load all resources automatically
 const resources = fs
@@ -62,6 +62,26 @@ async function handleRoutes(req, res) {
     }
 
     // =====================================
+    // GET /activity (សម្រាប់អាន Activity Log)
+    // =====================================
+    if (segments.length === 1 && segments[0] === "activity") {
+      if (method !== "GET") {
+        return sendJSON(res, 405, { error: "Method Not Allowed" });
+      }
+
+      const logFilePath = path.join(__dirname, "data", "activity.log");
+      let fileData = "";
+      try {
+        fileData = await fs.promises.readFile(logFilePath, "utf8");
+      } catch (err) {
+        fileData = ""; // បើគ្មាន file ទេ ចាត់ទុកជាទទេ
+      }
+
+      const logs = fileData.split("\n").filter(Boolean);
+      return sendJSON(res, 200, { logs });
+    }
+
+    // =====================================
     // FIND RESOURCE
     // =====================================
     const resource = resources.find(
@@ -86,7 +106,8 @@ async function handleRoutes(req, res) {
       req,
       res,
       pathname,
-      method
+      method,
+      bus
     );
 
   } catch (error) {

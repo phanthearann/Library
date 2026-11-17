@@ -2,6 +2,7 @@ const fs=require("fs").promises;
 const path=require("path");
 const filePath=path.join(__dirname,"..","data","books.json");
 const { sendJSON } = require("../lib/send");
+const bus = require("../lib/events");
 
 async function readData() {
   try {
@@ -156,7 +157,7 @@ async function handleBooks(req, res, pathname, method) {
     // POST /books
     if (segments.length === 1 && method === "POST") {
         const body = await readBody(req);
-        const newBook = await create(body);
+        const newBook = await create(body,bus);
 
         return sendJSON(res, 201, newBook);
     }
@@ -164,14 +165,14 @@ async function handleBooks(req, res, pathname, method) {
     // PUT /books/:id
     if (segments.length === 2 && method === "PUT") {
         const body = await readBody(req);
-        const updatedBook = await update(segments[1], body);
+        const updatedBook = await update(segments[1], body,bus);
 
         return sendJSON(res, 200, updatedBook);
     }
 
     // DELETE /books/:id
     if (segments.length === 2 && method === "DELETE") {
-        const result = await remove(segments[1]);
+        const result = await remove(segments[1],bus);
 
         return sendJSON(res, 200, result);
     }

@@ -5,5 +5,26 @@
     "personId": 1,
     "startedAt": "2026-11-17T03:37:15.695Z",
     "endedAt": "2026-11-17T03:37:15.710Z"
+  },
+  {
+    "id": 2,
+    "itemId": 4,
+    "personId": 3,
+    "startedAt": "2026-11-17T04:35:23.816Z",
+    "endedAt": "2026-11-17T04:35:23.821Z"
+  },
+  {
+    "id": 3,
+    "itemId": 1,
+    "personId": 2,
+    "startedAt": "2026-11-17T05:09:48.048Z",
+    "endedAt": null
+  },
+  {
+    "id": 4,
+    "itemId": 5,
+    "personId": 1,
+    "startedAt": "2026-11-17T05:17:53.939Z",
+    "endedAt": null
   }
 ]

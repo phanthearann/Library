@@ -1,0 +1,5 @@
+[2026-11-17T05:03:40.321Z] CREATED: {"resource":"books","id":7}
+[2026-11-17T05:17:53.945Z] CREATED: {"resource":"loans","id":4}
+[2026-11-17T05:19:32.509Z] CREATED: {"resource":"books","id":8}
+[2026-11-17T05:20:08.722Z] CREATED: {"resource":"members","id":4}
+[2026-11-17T05:28:09.279Z] CREATED: {"resource":"categories","id":6}
