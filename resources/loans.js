@@ -6,7 +6,7 @@ const members = require("./members");
 
 const { sendJSON } = require("../lib/send");
 
-const filePath = path.join(__dirname, "..", "Data", "loans.json");
+const filePath = path.join(__dirname, "..", "data", "loans.json");
 
 // Read loans.json
 async function readData() {

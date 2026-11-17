@@ -2,7 +2,7 @@ const fs = require("fs").promises;
 const path = require("path");
 const { sendJSON } = require("../lib/send");
 
-const filePath = path.join(__dirname, "..", "Data", "categories.json");
+const filePath = path.join(__dirname, "..", "data", "categories.json");
 
 async function ensureDirectory() {
   const dir = path.dirname(filePath);

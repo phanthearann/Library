@@ -1,6 +1,6 @@
 const fs=require("fs").promises;
 const path=require("path");
-const filePath=path.join(__dirname,"..","Data","books.json");
+const filePath=path.join(__dirname,"..","data","books.json");
 const { sendJSON } = require("../lib/send");
 
 async function readData() {
